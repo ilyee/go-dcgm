@@ -54,6 +54,7 @@ var (
 	stopMode             mode
 	handle               dcgmHandle
 	hostengineAsChildPid int
+	socketPath           string
 )
 
 func initDCGM(m mode, args ...string) (err error) {
@@ -196,8 +197,7 @@ func startHostengine() (err error) {
 	if err != nil {
 		return fmt.Errorf("error creating temporary file in %s directory: %s", dir, err)
 	}
-	socketPath := tmpfile.Name()
-	defer os.Remove(socketPath)
+	socketPath = tmpfile.Name()
 
 	connectArg := "--domain-socket"
 	hostengineAsChildPid, err = syscall.ForkExec(bin, []string{bin, connectArg, socketPath}, &procAttr)
@@ -225,6 +225,7 @@ func startHostengine() (err error) {
 }
 
 func stopHostengine() (err error) {
+	defer os.Remove(socketPath)
 	if err = disconnectStandalone(); err != nil {
 		return
 	}
