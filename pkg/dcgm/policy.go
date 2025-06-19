@@ -54,6 +54,8 @@ type PolicyViolation struct {
 	Timestamp time.Time
 	// Data contains violation-specific details
 	Data any
+	// GpuID contains the gpu id of event
+	GpuID uint
 }
 
 type policyIndex int
@@ -203,8 +205,10 @@ func ViolationRegistration(data unsafe.Pointer) int {
 	var con policyCondition
 	var timestamp time.Time
 	var val any
+	var gpuID uint
 
 	response := *(*C.dcgmPolicyCallbackResponse_t)(data)
+	gpuID = uint(response.gpuId)
 
 	switch response.condition {
 	case C.DCGM_POLICY_COND_DBE:
@@ -265,6 +269,7 @@ func ViolationRegistration(data unsafe.Pointer) int {
 		Condition: con,
 		Timestamp: timestamp,
 		Data:      val,
+		GpuID:     gpuID,
 	}
 
 	switch con {
